@@ -97,4 +97,8 @@ public abstract class Positionable implements Serializable {
             movementTimeline.stop();
         }
     }
+
+    public Timeline getMovementTimeline() {
+        return movementTimeline;
+    }
 }

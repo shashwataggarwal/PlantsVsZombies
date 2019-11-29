@@ -26,8 +26,6 @@ class Sunflower extends SunPlant {
     public Sunflower() {
         super(SUNFLOWER_HEALTH);
     }
-
-
     @Override
     public Image getImage() {
         if(image==null) {

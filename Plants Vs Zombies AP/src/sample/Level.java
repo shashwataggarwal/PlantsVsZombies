@@ -4,7 +4,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -55,9 +54,10 @@ public class Level implements Serializable {
     private Label progressTimer;
     private ProgressBar progressBar;
     private int initialTimerValue;
-    private int currentTImerValue;
+    private int currentTimerValue;
     private Label sunLabel;
     private Timeline progressTimeline;
+    private ArrayList<Timeline> allTimeLines;
     public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
@@ -66,6 +66,7 @@ public class Level implements Serializable {
         this.gamePane=gamePane;
         this.progressTimer=progressTimer;
         this.progressBar=progressBar;
+        allTimeLines=new ArrayList<Timeline>();
         initialTimerValue=0;
         this.cards=cards;
         cardTimeline=new ArrayList<Timeline>();
@@ -118,9 +119,11 @@ public class Level implements Serializable {
                 peaImageView.setLayoutY(peashooter.getImageView().getLayoutY()+11);
                 gamePane.getChildren().add(peaImageView);
                 pea.startMovement(2,pea.getBulletSpeed(),720-(int)peaImageView.getLayoutX(),100,true,gamePane);
+                allTimeLines.add(pea.getMovementTimeline());
                 bullets.get(row).add(pea);
             }
         }));
+        allTimeLines.add(shootTimeline);
         shootTimeline.setCycleCount(Timeline.INDEFINITE);
         shootTimeline.play();
         peashooter.setShootTimeline(shootTimeline);
@@ -139,6 +142,7 @@ public class Level implements Serializable {
             suns.add(dropSun);
             initSun(dropSun);
         }));
+        allTimeLines.add(sunTimeline);
         sunTimeline.setCycleCount(Timeline.INDEFINITE);
         sunTimeline.play();
         sunflower.setSunTimeline(sunTimeline);
@@ -164,6 +168,7 @@ public class Level implements Serializable {
             suns.add(dropSun);
             initSun(dropSun);
         }));
+        allTimeLines.add(sunTimeline);
         sunTimeline.setCycleCount(Timeline.INDEFINITE);
         sunTimeline.play();
         plant.setSunTimeline(sunTimeline);
@@ -180,8 +185,10 @@ public class Level implements Serializable {
                 gamePane.getChildren().add(peaImageView);
                 sbl.startMovement(2,sbl.getBulletSpeed(),720-(int)peaImageView.getLayoutX(),100,true,gamePane);
                 bullets.get(row).add(sbl);
+                allTimeLines.add(sbl.getMovementTimeline());
             }
         }));
+        allTimeLines.add(shootTimeline);
         shootTimeline.setCycleCount(Timeline.INDEFINITE);
         shootTimeline.play();
         plant.setShootingTimeline(shootTimeline);
@@ -246,20 +253,21 @@ public class Level implements Serializable {
         s+=y;
         progressTimer.setText(s);
         progressBar.setProgress(0);
-        currentTImerValue=initialTimerValue;
+        currentTimerValue =initialTimerValue;
         progressTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
-            currentTImerValue--;
+            currentTimerValue--;
             String t="";
-            t+=currentTImerValue/60;
+            t+= currentTimerValue /60;
             t+=":";
-            int z=currentTImerValue%60;
+            int z= currentTimerValue %60;
             if(z<10) {
                 t+="0";
             }
             t+=z;
             progressTimer.setText(t);
-            progressBar.setProgress(1-currentTImerValue/(double)initialTimerValue);
+            progressBar.setProgress(1- currentTimerValue /(double)initialTimerValue);
         }));
+        allTimeLines.add(progressTimeline);
         progressTimeline.setCycleCount(initialTimerValue);
         progressTimeline.play();
 
@@ -282,9 +290,11 @@ public class Level implements Serializable {
             gamePane.getChildren().add(sunImage);
             sun.setImageView(sunImage);
             sun.startMovement(0,2,y);
+            allTimeLines.add(sun.getMovementTimeline());
             suns.add(sun);
             initSun(sun);
         }));
+        allTimeLines.add(sunGeneratingTimeline);
         sunGeneratingTimeline.setCycleCount(Timeline.INDEFINITE);
         sunGeneratingTimeline.play();
     }
@@ -293,6 +303,7 @@ public class Level implements Serializable {
         zombiesPos.forEach((k,v)-> {
             v.forEach(zombie -> {
                 zombie.startMovement(1,3,50000,transparentImage,lawnMowers.get(k),this,gamePane);
+                allTimeLines.add(zombie.getMovementTimeline());
                 int temp=(int)(zombie.getImageView().getLayoutX()-115)*50;
                 temp=temp/60;
                 if(temp>initialTimerValue) {
@@ -414,6 +425,10 @@ public class Level implements Serializable {
         }
     }
 
+    public ArrayList<Timeline> getAllTimeLines() {
+        return allTimeLines;
+    }
+
     private void createRow(int y) {
         int y_cord=79+76*y;
         ArrayList<ImageView> temp=new ArrayList<ImageView>();
@@ -510,6 +525,7 @@ public class Level implements Serializable {
 
     private void initCherryBomb(CherryBomb bomb) {
         bomb.blast(gamePane,transparentImage);
+        allTimeLines.add(bomb.getBlastTimeline());
     }
 
     private void reduceSunCount(int amount) {
@@ -545,6 +561,7 @@ public class Level implements Serializable {
                         cardLabels.get(i).setText(Integer.toString(Integer.parseInt(cardLabels.get(i).getText())-1));
                     }
                 })));
+                allTimeLines.add(cardTimeline.get(i));
                 cardTimeline.get(i).setCycleCount(refreshTime.get(i));
                 cardTimeline.get(i).setOnFinished(f-> {
                     plantStatus.set(i,true);

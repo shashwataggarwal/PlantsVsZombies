@@ -34,6 +34,9 @@ class Peashooter extends Shooter {
         super(PEASHOOTER_HEALTH);
     }
 
+    public Timeline getShootTimeLine(){
+        return shootTimeline;
+    }
     @Override
     public Image getImage() {
         if(image==null) {
@@ -165,6 +168,10 @@ class Peashooter extends Shooter {
             return false;
 
         }
+
+
     }
+
+
 }
 

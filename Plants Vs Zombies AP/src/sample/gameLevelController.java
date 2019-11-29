@@ -74,7 +74,7 @@ public class gameLevelController implements Initializable {
     private boolean specialRefreshed;
     public int initProgressTimerValue;
     public int currProgress;
-
+    private Level level;
     private Random random;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -114,7 +114,7 @@ public class gameLevelController implements Initializable {
         ls.add(l3);
         ls.add(l4);
         ls.add(l5);
-        Level level1=new Level(5,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar);
+        level=new Level(5,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar);
     }
     public void initProgress() {
         System.out.println(initProgressTimerValue);
@@ -354,8 +354,11 @@ public class gameLevelController implements Initializable {
     }
 
     public void pauseEventHandler(ActionEvent e) {
-        for(Animation anim:allAnims) {
-            anim.pause();
+
+        for(Timeline anim:level.getAllTimeLines()) {
+            if(anim!=null) {
+                anim.pause();
+            }
         }
         gamePane.setDisable(true);
         pausePane.setVisible(true);
@@ -365,55 +368,57 @@ public class gameLevelController implements Initializable {
         gamePane.setDisable(false);
         pausePane.setVisible(false);
         pausePane.setDisable(true);
-        for(Animation anim:allAnims) {
-            anim.play();
+        for(Timeline anim:level.getAllTimeLines()) {
+            if(anim!=null) {
+                anim.play();
+            }
         }
     }
 
-    public void startGeneratingSunTokens() {
-        Timeline sunTimeline = new Timeline(new KeyFrame(Duration.seconds(10), new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("TIMELINE STARTED");
-                ImageView sun=new ImageView(sunImage);
-                sun.setFitHeight(40);
-                sun.setFitWidth(40);
-                int x,y;
-                x=150+random.nextInt(450);
-                y=90+random.nextInt(300);
-                sun.setLayoutX(x);
-                sun.setLayoutY(0);
-                sun.setVisible(true);
-                sun.setDisable(false);
-                gamePane.getChildren().add(sun);
-                TranslateTransition movesun=new TranslateTransition(Duration.millis(y*30),sun);
-                movesun.setToY(y);
-                movesun.setCycleCount(1);
-                movesun.play();
-                allAnims.add(movesun);
-                sun.setOnMouseClicked(e-> {
-                    sun.setDisable(true);
-                    sun.setVisible(false);
-                    increaseSunCount();
-                });
-                Timeline removeSunTimeline=new Timeline(new KeyFrame(Duration.seconds(25), new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        if(!sun.isDisable()) {
-                            sun.setVisible(false);
-                            sun.setDisable(true);
-                        }
-                    }
-                }));
-                removeSunTimeline.setCycleCount(1);
-                removeSunTimeline.play();
-                allAnims.add(removeSunTimeline);
-            }
-        }));
-        sunTimeline.setCycleCount(Timeline.INDEFINITE);
-        sunTimeline.play();
-        allAnims.add(sunTimeline);
-    }
+//    public void startGeneratingSunTokens() {
+//        Timeline sunTimeline = new Timeline(new KeyFrame(Duration.seconds(10), new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
+//                System.out.println("TIMELINE STARTED");
+//                ImageView sun=new ImageView(sunImage);
+//                sun.setFitHeight(40);
+//                sun.setFitWidth(40);
+//                int x,y;
+//                x=150+random.nextInt(450);
+//                y=90+random.nextInt(300);
+//                sun.setLayoutX(x);
+//                sun.setLayoutY(0);
+//                sun.setVisible(true);
+//                sun.setDisable(false);
+//                gamePane.getChildren().add(sun);
+//                TranslateTransition movesun=new TranslateTransition(Duration.millis(y*30),sun);
+//                movesun.setToY(y);
+//                movesun.setCycleCount(1);
+//                movesun.play();
+//                allAnims.add(movesun);
+//                sun.setOnMouseClicked(e-> {
+//                    sun.setDisable(true);
+//                    sun.setVisible(false);
+//                    increaseSunCount();
+//                });
+//                Timeline removeSunTimeline=new Timeline(new KeyFrame(Duration.seconds(25), new EventHandler<ActionEvent>() {
+//                    @Override
+//                    public void handle(ActionEvent actionEvent) {
+//                        if(!sun.isDisable()) {
+//                            sun.setVisible(false);
+//                            sun.setDisable(true);
+//                        }
+//                    }
+//                }));
+//                removeSunTimeline.setCycleCount(1);
+//                removeSunTimeline.play();
+//                allAnims.add(removeSunTimeline);
+//            }
+//        }));
+//        sunTimeline.setCycleCount(Timeline.INDEFINITE);
+//        sunTimeline.play();
+//        allAnims.add(sunTimeline);
+//    }
     public void exitGameEventHandler(ActionEvent e) throws IOException {
         Parent gameLevelRoot= FXMLLoader.load(getClass().getResource("mainMenu.fxml"));
         Scene gameLevelScene=new Scene(gameLevelRoot);

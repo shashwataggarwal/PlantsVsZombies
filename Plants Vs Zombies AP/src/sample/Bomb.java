@@ -25,10 +25,15 @@ class CherryBomb extends Bomb {
     private static final int CHERRY_RECHARGE_TIME=10;
     private static final int CHERRY_HEALTH=1000000;
     private static Image image;
+    private Timeline blastTimeline;
     private HashMap<Integer, ArrayList<Zombie>> zombies;
     public CherryBomb(HashMap<Integer,ArrayList<Zombie>> zombies) {
         super(CHERRY_HEALTH);
         this.zombies=zombies;
+    }
+
+    public Timeline getBlastTimeline() {
+        return blastTimeline;
     }
 
     @Override
@@ -59,7 +64,7 @@ class CherryBomb extends Bomb {
     }
 
     public void blast(Pane gamePane,Image blank) {
-        Timeline tl=new Timeline(new KeyFrame(Duration.seconds(3),e-> {
+        blastTimeline=new Timeline(new KeyFrame(Duration.seconds(3),e-> {
             imageView.setDisable(true);
             imageView.setVisible(false);
             imageView.setImage(blank);
@@ -80,8 +85,8 @@ class CherryBomb extends Bomb {
             alive=false;
             health=0;
         }));
-        tl.setCycleCount(1);
-        tl.play();
+        blastTimeline.setCycleCount(1);
+        blastTimeline.play();
     }
 
     public boolean shouldZombieDie(ImageView zombie) {

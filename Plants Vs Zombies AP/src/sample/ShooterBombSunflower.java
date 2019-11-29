@@ -25,7 +25,6 @@ public class ShooterBombSunflower extends Plant {
     private Timeline shootingTimeline;
     private Timeline sunTimeline;
     private static Image image;
-    private Timeline blastTimeline=null;
     private HashMap<Integer,ArrayList<Zombie>> zombies;
     public ShooterBombSunflower(HashMap<Integer,ArrayList<Zombie>> zombies) {
         super(SBS_HEALTH);
@@ -39,6 +38,7 @@ public class ShooterBombSunflower extends Plant {
     public Timeline getShootingTimeline() {
         return shootingTimeline;
     }
+
 
     public static int getSbsShootingSpeed() {
         return SBS_SHOOTING_SPEED;
