@@ -34,8 +34,6 @@ class Peashooter extends Shooter {
         super(PEASHOOTER_HEALTH);
     }
 
-
-
     @Override
     public Image getImage() {
         if(image==null) {
@@ -108,6 +106,12 @@ class Peashooter extends Shooter {
             return image;
         }
 
+
+        @Override
+        public void remove() {
+            shootTimeline.stop();
+        }
+
         @Override
         public void startMovement(int dir, int offset, int distance, int milli, boolean remove, Pane gamePane) {
             movementTimeline=new Timeline(new KeyFrame(Duration.millis(milli), new EventHandler<ActionEvent>() {
@@ -126,10 +130,13 @@ class Peashooter extends Shooter {
                         if(intersects(imageView,zombies.get(i).getImageView())) {
                             imageView.setDisable(true);
                             imageView.setVisible(false);
-                            gamePane.getChildren().remove(this);
-                            zombies.get(i).reduceHealth();
+                            gamePane.getChildren().remove(imageView);
+                            zombies.get(i).reduceHealth(PEABULLET_DAMAGE);
                             if(!zombies.get(i).isAlive()) {
-                                gamePane.getChildren().remove(zombies.get(i));
+                                zombies.get(i).getImageView().setDisable(true);
+                                zombies.get(i).getImageView().setVisible(false);
+                                zombies.get(i).remove();
+                                gamePane.getChildren().remove(zombies.get(i).getImageView());
                                 zombies.remove(i);
                             }
                         }

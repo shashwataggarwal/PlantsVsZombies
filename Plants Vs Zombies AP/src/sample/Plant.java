@@ -6,6 +6,13 @@ public abstract class Plant extends Character {
     }
     public abstract int getRechargeTime();
     public abstract int getCost();
+    public void reduceHealth(int amount) {
+        health-=amount;
+        if(health<=0) {
+            alive=false;
+            health=0;
+        }
+    }
 }
 
 interface Bullet {

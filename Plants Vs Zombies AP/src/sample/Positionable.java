@@ -91,4 +91,10 @@ public abstract class Positionable implements Serializable {
     }
 
     public abstract Image getImage();
+
+    public void remove() {
+        if(movementTimeline!=null) {
+            movementTimeline.stop();
+        }
+    }
 }

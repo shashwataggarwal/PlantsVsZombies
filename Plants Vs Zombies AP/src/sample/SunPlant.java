@@ -62,4 +62,9 @@ class Sunflower extends SunPlant {
     public int getProductionTime() {
         return SUNFLOWER_TIME;
     }
+
+    @Override
+    public void remove() {
+        sunTimeline.stop();
+    }
 }

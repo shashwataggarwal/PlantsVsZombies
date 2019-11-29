@@ -114,7 +114,7 @@ public class gameLevelController implements Initializable {
         ls.add(l3);
         ls.add(l4);
         ls.add(l5);
-        Level level1=new Level(5,gamePane,cards,labels,ls);
+        Level level1=new Level(5,gamePane,cards,labels,ls,sunCount);
     }
     public void initProgress() {
         System.out.println(initProgressTimerValue);

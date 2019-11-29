@@ -1,28 +1,34 @@
 package sample;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class Bomb extends Plant {
     public Bomb(int health) {
         super(health);
     }
     public abstract int getBlastRadius();
-    public void blast() {
-
-    }
 }
 
 class CherryBomb extends Bomb {
-    private static final int CHERRY_BLAST_RADIUS=2;
+    private static final int CHERRY_BLAST_RADIUS=1;
     private static final int CHERRY_COST=150;
     private static final int CHERRY_RECHARGE_TIME=10;
-    private static final int CHERRY_HEALTH=10;
+    private static final int CHERRY_HEALTH=1000000;
     private static Image image;
-    public CherryBomb() {
+    private HashMap<Integer, ArrayList<Zombie>> zombies;
+    public CherryBomb(HashMap<Integer,ArrayList<Zombie>> zombies) {
         super(CHERRY_HEALTH);
+        this.zombies=zombies;
     }
 
     @Override
@@ -50,5 +56,40 @@ class CherryBomb extends Bomb {
     @Override
     public int getCost() {
         return CHERRY_COST;
+    }
+
+    public void blast(Pane gamePane,Image blank) {
+        Timeline tl=new Timeline(new KeyFrame(Duration.seconds(3),e-> {
+            imageView.setDisable(true);
+            imageView.setVisible(false);
+            imageView.setImage(blank);
+            imageView.setOpacity(0);
+            for(int row:zombies.keySet()) {
+                ArrayList<Zombie> zombieRow=zombies.get(row);
+                for(int i=zombieRow.size()-1;i>=0;i--) {
+                    ImageView temp=zombieRow.get(i).getImageView();
+                    if(shouldZombieDie(temp)) {
+                        temp.setVisible(false);
+                        temp.setDisable(true);
+                        gamePane.getChildren().remove(temp);
+                        zombieRow.get(i).remove();
+                        zombieRow.remove(i);
+                    }
+                }
+            }
+            alive=false;
+            health=0;
+        }));
+        tl.setCycleCount(1);
+        tl.play();
+    }
+
+    public boolean shouldZombieDie(ImageView zombie) {
+        double x_diff=zombie.getLayoutX()-imageView.getLayoutX();
+        double y_diff=zombie.getLayoutY()-imageView.getLayoutY();
+        if(x_diff<=112 && x_diff>=-56 && y_diff<=100 && y_diff>=-100) {
+            return true;
+        }
+        return false;
     }
 }

@@ -12,6 +12,7 @@ import javafx.util.Duration;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ShooterBombSunflower extends Plant {
     private static final int SBS_COST=250;
@@ -19,13 +20,16 @@ public class ShooterBombSunflower extends Plant {
     private static final int SBS_TIME=5;
     private static final int SBS_SHOOTING_SPEED=3;
     private static final int SBS_BLAST_RADIUS=2;
-    private static final int SBS_HEALTH=10;
+    private static final int SBS_HEALTH=100000;
     private static final int SBL_PRODUCTION_TIME=10;
     private Timeline shootingTimeline;
     private Timeline sunTimeline;
     private static Image image;
-    public ShooterBombSunflower() {
+    private Timeline blastTimeline=null;
+    private HashMap<Integer,ArrayList<Zombie>> zombies;
+    public ShooterBombSunflower(HashMap<Integer,ArrayList<Zombie>> zombies) {
         super(SBS_HEALTH);
+        this.zombies=zombies;
     }
 
     public static int getSblProductionTime() {
@@ -75,7 +79,7 @@ public class ShooterBombSunflower extends Plant {
     }
 
     public class SpecialBullet extends Positionable implements Bullet {
-        private static final int SBL_DAMAGE=10;
+        private static final int SBL_DAMAGE=5;
         private static final int SBL_SPEED=10;
         private ArrayList<Zombie> zombies;
         private Image image;
@@ -122,10 +126,13 @@ public class ShooterBombSunflower extends Plant {
                         if(intersects(imageView,zombies.get(i).getImageView())) {
                             imageView.setDisable(true);
                             imageView.setVisible(false);
-                            gamePane.getChildren().remove(this);
-                            zombies.get(i).reduceHealth();
+                            gamePane.getChildren().remove(imageView);
+                            zombies.get(i).reduceHealth(SBL_DAMAGE);
                             if(!zombies.get(i).isAlive()) {
-                                gamePane.getChildren().remove(zombies.get(i));
+                                zombies.get(i).getImageView().setDisable(true);
+                                zombies.get(i).getImageView().setVisible(false);
+                                zombies.get(i).remove();
+                                gamePane.getChildren().remove(zombies.get(i).getImageView());
                                 zombies.remove(i);
                             }
                         }
@@ -154,6 +161,42 @@ public class ShooterBombSunflower extends Plant {
             return false;
 
         }
+    }
 
+    @Override
+    public void remove() {
+        shootingTimeline.stop();
+        sunTimeline.stop();
+    }
+
+    public void blast(Pane gamePane,Image blank) {
+        imageView.setDisable(true);
+        imageView.setVisible(false);
+        imageView.setImage(blank);
+        imageView.setOpacity(0);
+        for(int row:zombies.keySet()) {
+            ArrayList<Zombie> zombieRow=zombies.get(row);
+            for(int i=zombieRow.size()-1;i>=0;i--) {
+                ImageView temp=zombieRow.get(i).getImageView();
+                if(shouldZombieDie(temp)) {
+                    temp.setVisible(false);
+                    temp.setDisable(true);
+                    gamePane.getChildren().remove(temp);
+                    zombieRow.get(i).remove();
+                    zombieRow.remove(i);
+                }
+            }
+        }
+        alive=false;
+        health=0;
+    }
+
+    public boolean shouldZombieDie(ImageView zombie) {
+        double x_diff=zombie.getLayoutX()-imageView.getLayoutX();
+        double y_diff=zombie.getLayoutY()-imageView.getLayoutY();
+        if(x_diff<=112 && x_diff>=-56 && y_diff<=100 && y_diff>=-100) {
+            return true;
+        }
+        return false;
     }
 }

@@ -3,8 +3,8 @@ package sample;
 import java.io.Serializable;
 
 public abstract class Character extends Positionable implements Serializable {
-    private int health;
-    private boolean alive;
+    protected int health;
+    protected boolean alive;
     public Character(int health) {
         this.health=health;
         this.alive=true;

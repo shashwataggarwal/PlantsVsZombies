@@ -4,16 +4,17 @@ import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 
 public class BoostedZombie extends Zombie{
     private static final int BOOSTEDZOMBIE_ATTACK_POWER = 8;
     private static final int BOOSTEDZOMBIE_DEFENSE_POWER = 3;
     private static final int BOOSTEDZOMBIE_SPEED = 1;
-    private static final int BOOSTEDZOMBIE_HEALTH=60;
+    private static final int BOOSTEDZOMBIE_HEALTH=25;
     private static Image image;
 
-    public BoostedZombie() {
-        super(BOOSTEDZOMBIE_HEALTH);
+    public BoostedZombie(HashMap<Integer,Plant> p) {
+        super(BOOSTEDZOMBIE_HEALTH,p);
         this.attackPower = BOOSTEDZOMBIE_ATTACK_POWER;
         this.defensePower = BOOSTEDZOMBIE_DEFENSE_POWER;
         this.speed = BOOSTEDZOMBIE_SPEED;

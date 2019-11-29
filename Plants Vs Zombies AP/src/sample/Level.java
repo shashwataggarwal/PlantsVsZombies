@@ -46,19 +46,30 @@ public class Level implements Serializable {
     private Image transparentImage;
     private HashMap<Integer,ArrayList<Positionable>> bullets;
     private Timeline collisionDetection;
-    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages) {
+    private boolean finished=false;
+    private ArrayList<Boolean> plantStatus;
+    private ArrayList<Integer> cost;
+    private ArrayList<Integer> refreshTime;
+    private ArrayList<Timeline> cardTimeline;
+    private Label sunLabel;
+    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages,Label sunLabel) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
         this.lawnMowersImages=lawnMowersImages;
+        this.sunLabel=sunLabel;
         this.gamePane=gamePane;
         this.cards=cards;
+        cardTimeline=new ArrayList<Timeline>();
         bullets=new HashMap<Integer,ArrayList<Positionable>>();
         try {
             transparentImage=new Image(new FileInputStream("./images/transparent.png"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        sunCount=0;
+        plantStatus=new ArrayList<Boolean>();
+        cost=new ArrayList<Integer>();
+        refreshTime=new ArrayList<Integer>();
+        sunCount=100;
         suns=new HashSet<Sun>();
         lawnMowers=new HashMap<Integer, LawnMower>();
         zombiesPos=new HashMap<Integer, ArrayList<Zombie>>();
@@ -78,6 +89,12 @@ public class Level implements Serializable {
         }
         grid= new HashMap<>();
         initLevel();
+    }
+
+    public void loseGame() {
+        if(!finished) {
+            finished=true;
+        }
     }
 
     private void initPeaShooter(Peashooter peashooter,int row) {
@@ -164,7 +181,14 @@ public class Level implements Serializable {
 
 
     public void increaseSunCount() {
-
+        sunCount+=25;
+        sunLabel.setText(Integer.toString(sunCount));
+        for(int i=0;i<levelNumber;i++) {
+            if(cards.get(i).isDisabled() && cost.get(i)<=sunCount && plantStatus.get(i)) {
+                cards.get(i).setOpacity(1);
+                cards.get(i).setDisable(false);
+            }
+        }
     }
 
     private boolean aliveZombieInRow(int row) {
@@ -179,48 +203,12 @@ public class Level implements Serializable {
     private void initLevel() {
         createGrid();
         initCards();
-        initLawnMowers();
         initZombies();
+        initLawnMowers();
         addDragEventHandlers();
-//        initCollisions();
         play();
     }
 
-//    private void initCollisions() {
-//        collisionDetection=new Timeline(new KeyFrame(Duration.millis(20),e-> {
-//            for(Integer row:grid.keySet()) {
-//                ArrayList<Positionable> bulletRow=bullets.get(row);
-//                for(int i=bulletRow.size()-1;i>=0;i--) {
-//                    if(bulletRow.get(i).getImageView().isDisabled()) {
-//                        bulletRow.remove(i);
-//                        continue;
-//                    }
-//                    ArrayList<Zombie> zombieRow=zombiesPos.get(i);
-//                    for(int j=zombieRow.size()-1;j>=0;j--) {
-////                        System.out.println("YO");
-//                        if(intersects(bulletRow.get(i).getImageView(),zombieRow.get(j).getImageView())) {
-//                            System.out.println(bulletRow.get(i).getImageView().getLayoutBounds().getMaxX());
-//                            System.out.println(zombieRow.get(j).getImageView().getLayoutBounds().getMinX());
-////                            System.out.println("YOLO");
-//                            System.out.println(bulletRow.get(i).getImageView().getLayoutX());
-//                            System.out.println(zombieRow.get(j).getImageView().getLayoutX());
-//                            gamePane.getChildren().remove(bulletRow.get(i).getImageView());
-//                            bulletRow.get(i).getImageView().setDisable(true);
-//                            bulletRow.remove(i);
-//                            zombieRow.get(j).reduceHealth();
-//                            if(!zombieRow.get(i).isAlive()) {
-//                                gamePane.getChildren().remove(zombieRow.get(j).getImageView());
-//                                zombieRow.remove(j);
-//                            }
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }));
-//        collisionDetection.setCycleCount(Timeline.INDEFINITE);
-//        collisionDetection.play();
-//    }
 
     private boolean intersects(ImageView x,ImageView y) {
         int offset=(int)(y.getLayoutX()-x.getLayoutX());
@@ -262,7 +250,7 @@ public class Level implements Serializable {
     private void moveZombies() {
         zombiesPos.forEach((k,v)-> {
             v.forEach(zombie -> {
-                zombie.startMovement(1,2,50000);
+                zombie.startMovement(1,2,50000,transparentImage,lawnMowers.get(k),this,gamePane);
             });
         });
     }
@@ -270,7 +258,7 @@ public class Level implements Serializable {
     private void initLawnMowers() {
         for(int i=0;i<5;i++) {
             if(grid.containsKey(i)) {
-                LawnMower temp=new LawnMower(i);
+                LawnMower temp=new LawnMower(i,zombiesPos.get(i));
                 temp.setImageView(lawnMowersImages.get(i));
                 lawnMowersImages.get(i).setDisable(false);
                 lawnMowersImages.get(i).setVisible(true);
@@ -305,14 +293,14 @@ public class Level implements Serializable {
         Zombie gen=null;
         ImageView imageView=null;
         if(type==0) {
-            gen=new BasicZombie();
+            gen=new BasicZombie(plants.get(row));
             imageView=new ImageView(gen.getImage());
             gen.setImageView(imageView);
             imageView.setFitHeight(65);
             imageView.setFitWidth(45);
         }
         else {
-            gen=new BoostedZombie();
+            gen=new BoostedZombie(plants.get(row));
             imageView=new ImageView(gen.getImage());
             gen.setImageView(imageView);
             imageView.setFitHeight(65);
@@ -327,9 +315,44 @@ public class Level implements Serializable {
     }
 
     private void initCards() {
+        sunLabel.setText(Integer.toString(sunCount));
+        for(int i=0;i<levelNumber;i++) {
+            cardTimeline.add(null);
+            switch (i) {
+                case 0:
+                    cost.add(100);
+                    plantStatus.add(true);
+                    refreshTime.add(5);
+                    break;
+                case 1:
+                    cost.add(50);
+                    plantStatus.add(true);
+                    refreshTime.add(5);
+                    break;
+                case 2:
+                    cost.add(150);
+                    plantStatus.add(true);
+                    refreshTime.add(15);
+                    break;
+                case 3:
+                    cost.add(50);
+                    plantStatus.add(true);
+                    refreshTime.add(10);
+                    break;
+                case 4:
+                    cost.add(250);
+                    plantStatus.add(true);
+                    refreshTime.add(5);
+                    break;
+            }
+        }
         for(int i=0;i<levelNumber;i++) {
             cards.get(i).setDisable(false);
             cards.get(i).setVisible(true);
+            if(cost.get(i)>sunCount) {
+                cards.get(i).setOpacity(0.25);
+                cards.get(i).setDisable(true);
+            }
             cardLabels.get(i).setDisable(false);
             cardLabels.get(i).setVisible(false);
         }
@@ -386,10 +409,8 @@ public class Level implements Serializable {
     }
 
     public void addDragEventHandlers() {
-        for(int i=0;i<cards.size();i++) {
-            if(!cards.get(i).isDisable()) {
-                addCardDrags(cards.get(i),i);
-            }
+        for(int i=0;i<levelNumber;i++) {
+            addCardDrags(cards.get(i),i);
         }
         grid.forEach((k,v)->{
             v.forEach(gridPos-> {
@@ -414,13 +435,14 @@ public class Level implements Serializable {
                             initSunflower((Sunflower)temp,k);
                             break;
                         case 2:
-                            temp=new CherryBomb();
+                            temp=new CherryBomb(zombiesPos);
+                            initCherryBomb((CherryBomb)temp);
                             break;
                         case 3:
                             temp=new Wallnut();
                             break;
                         case 4:
-                            temp=new ShooterBombSunflower();
+                            temp=new ShooterBombSunflower(zombiesPos);
                             initSpecial((ShooterBombSunflower)temp,k);
                             break;
                     }
@@ -436,12 +458,55 @@ public class Level implements Serializable {
 
     }
 
+    private void initCherryBomb(CherryBomb bomb) {
+        bomb.blast(gamePane,transparentImage);
+    }
+
+    private void reduceSunCount(int amount) {
+        sunCount-=amount;
+        sunLabel.setText(Integer.toString(sunCount));
+        for(int i=0;i<levelNumber;i++) {
+            if(cost.get(i)>sunCount) {
+                cards.get(i).setOpacity(0.25);
+                cards.get(i).setDisable(true);
+            }
+        }
+    }
+
     private void addCardDrags(ImageView card,int index) {
         card.setOnDragDetected(e -> {
             Dragboard cardDragboard=card.startDragAndDrop(TransferMode.ANY);
             ClipboardContent content = new ClipboardContent();
             content.putString(Integer.toString(index));
             cardDragboard.setContent(content);
+            e.consume();
+        });
+        card.setOnDragDone(e-> {
+            if(e.getTransferMode()!=null) {
+                card.setOpacity(0.25);
+                card.setDisable(true);
+                int i=cards.indexOf(card);
+                cardLabels.get(i).setVisible(true);
+                cardLabels.get(i).setText(Integer.toString(refreshTime.get(i)));
+                plantStatus.set(i,false);
+                cardTimeline.set(i,new Timeline(new KeyFrame(Duration.seconds(1), new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        cardLabels.get(i).setText(Integer.toString(Integer.parseInt(cardLabels.get(i).getText())-1));
+                    }
+                })));
+                cardTimeline.get(i).setCycleCount(refreshTime.get(i));
+                cardTimeline.get(i).setOnFinished(f-> {
+                    plantStatus.set(i,true);
+                    cardLabels.get(i).setVisible(false);
+                    if(sunCount>=cost.get(i)) {
+                        cards.get(i).setOpacity(1);
+                        cards.get(i).setDisable(false);
+                    }
+                });
+                cardTimeline.get(i).play();
+                reduceSunCount(cost.get(i));
+            }
             e.consume();
         });
 //        card.setOnDragDone(e -> {
