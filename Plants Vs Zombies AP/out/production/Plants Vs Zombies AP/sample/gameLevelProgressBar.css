@@ -1,0 +1,5 @@
+.progress-bar > .bar{
+    -fx-background-image : url("../images/pauseButtonBg.jpg");
+    -fx-background-position: right ;
+    -fx-background-color: transparent ;
+}

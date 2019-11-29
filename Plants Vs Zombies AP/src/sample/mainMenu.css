@@ -1,0 +1,6 @@
+.button{
+    -fx-background-image : url("../images/treeButtonBackground.jpg");
+    -fx-font : 18px "Comic Sans MS"; 
+    -fx-text-fill : #ffffff;
+    -fx-font-weight : bold;
+}
