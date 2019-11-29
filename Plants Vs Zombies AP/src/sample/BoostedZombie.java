@@ -9,7 +9,7 @@ import java.util.HashMap;
 public class BoostedZombie extends Zombie{
     private static final int BOOSTEDZOMBIE_ATTACK_POWER = 8;
     private static final int BOOSTEDZOMBIE_DEFENSE_POWER = 3;
-    private static final int BOOSTEDZOMBIE_SPEED = 1;
+    private static final int BOOSTEDZOMBIE_SPEED = 2;
     private static final int BOOSTEDZOMBIE_HEALTH=25;
     private static Image image;
 

@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -51,13 +52,21 @@ public class Level implements Serializable {
     private ArrayList<Integer> cost;
     private ArrayList<Integer> refreshTime;
     private ArrayList<Timeline> cardTimeline;
+    private Label progressTimer;
+    private ProgressBar progressBar;
+    private int initialTimerValue;
+    private int currentTImerValue;
     private Label sunLabel;
-    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages,Label sunLabel) {
+    private Timeline progressTimeline;
+    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
         this.lawnMowersImages=lawnMowersImages;
         this.sunLabel=sunLabel;
         this.gamePane=gamePane;
+        this.progressTimer=progressTimer;
+        this.progressBar=progressBar;
+        initialTimerValue=0;
         this.cards=cards;
         cardTimeline=new ArrayList<Timeline>();
         bullets=new HashMap<Integer,ArrayList<Positionable>>();
@@ -207,6 +216,7 @@ public class Level implements Serializable {
         initLawnMowers();
         addDragEventHandlers();
         play();
+
     }
 
 
@@ -221,6 +231,38 @@ public class Level implements Serializable {
     private void play() {
         moveZombies();
         startGeneratingSunTokens();
+        startProgress();
+    }
+
+    private void startProgress() {
+        System.out.println(initialTimerValue);
+        String s="";
+        s+=initialTimerValue/60;
+        s+=":";
+        int y=initialTimerValue%60;
+        if(y<10) {
+            s+="0";
+        }
+        s+=y;
+        progressTimer.setText(s);
+        progressBar.setProgress(0);
+        currentTImerValue=initialTimerValue;
+        progressTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
+            currentTImerValue--;
+            String t="";
+            t+=currentTImerValue/60;
+            t+=":";
+            int z=currentTImerValue%60;
+            if(z<10) {
+                t+="0";
+            }
+            t+=z;
+            progressTimer.setText(t);
+            progressBar.setProgress(1-currentTImerValue/(double)initialTimerValue);
+        }));
+        progressTimeline.setCycleCount(initialTimerValue);
+        progressTimeline.play();
+
     }
 
     private void startGeneratingSunTokens() {
@@ -250,7 +292,15 @@ public class Level implements Serializable {
     private void moveZombies() {
         zombiesPos.forEach((k,v)-> {
             v.forEach(zombie -> {
-                zombie.startMovement(1,2,50000,transparentImage,lawnMowers.get(k),this,gamePane);
+                zombie.startMovement(1,3,50000,transparentImage,lawnMowers.get(k),this,gamePane);
+                int temp=(int)(zombie.getImageView().getLayoutX()-115)*50;
+                temp=temp/60;
+                if(temp>initialTimerValue) {
+                    initialTimerValue=temp;
+                }
+//                if(zombie.getImageView().getLayoutX()>initialTimerValue) {
+//                    initialTimerValue=(int)zombie.getImageView().getLayoutX();
+//                }
             });
         });
     }
@@ -275,8 +325,8 @@ public class Level implements Serializable {
         Random random=new Random();
         grid.forEach((k,v) -> {
             zombiesPos.put(k,new ArrayList<Zombie>());
-            int numZombiesPerRow=2+2*levelNumber+random.nextInt((int)(levelNumber*1.5));
-            int scalingFactor=200-(levelNumber-1)*10;
+            int numZombiesPerRow=2+random.nextInt(levelNumber/2);
+            int scalingFactor=170-(levelNumber-1)*10;
             int numBoostedZombies=(levelNumber>3)?(int)(numZombiesPerRow*0.4):0;
             for(int i=0;i<numZombiesPerRow;i++) {
                     int type=0;
