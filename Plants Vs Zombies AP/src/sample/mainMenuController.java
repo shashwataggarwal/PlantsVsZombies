@@ -17,13 +17,27 @@ public class mainMenuController {
         System.exit(0);
     }
     public void startGameEventHandler(ActionEvent e) throws IOException {
-        Parent gameLevelRoot= FXMLLoader.load(getClass().getResource("gameLevel.fxml"));
-        Scene gameLevelScene=new Scene(gameLevelRoot);
+//        Parent gameLevelRoot= FXMLLoader.load(getClass().getResource("gameLevel.fxml"));
+//        Scene gameLevelScene=new Scene(gameLevelRoot);
         Stage appWindow=(Stage)((Node)e.getSource()).getScene().getWindow();
-        appWindow.setScene(gameLevelScene);
+//        appWindow.setScene(gameLevelScene);
+//        appWindow.show();
+
+
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("gameLevel.fxml"));
+
+        Parent root = (Parent)fxmlLoader.load();
+        gameLevelController controller = fxmlLoader.<gameLevelController>getController();
+        Scene scene = new Scene(root);
+
+        appWindow.setScene(scene);
+
         appWindow.show();
+        controller.startLevel(1);
     }
     public void loadGameEventHandler(ActionEvent e) throws IOException {
     }
+
+
 
 }

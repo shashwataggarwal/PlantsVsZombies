@@ -58,6 +58,7 @@ public class Level implements Serializable {
     private Label sunLabel;
     private Timeline progressTimeline;
     private ArrayList<Timeline> allTimeLines;
+    private Timeline checkWinTimeline;
     public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
@@ -302,10 +303,10 @@ public class Level implements Serializable {
     private void moveZombies() {
         zombiesPos.forEach((k,v)-> {
             v.forEach(zombie -> {
-                zombie.startMovement(1,3,50000,transparentImage,lawnMowers.get(k),this,gamePane);
+                zombie.startMovement(1,2,50000,transparentImage,lawnMowers.get(k),this,gamePane);
                 allTimeLines.add(zombie.getMovementTimeline());
-                int temp=(int)(zombie.getImageView().getLayoutX()-115)*50;
-                temp=temp/60;
+                int temp=(int)(zombie.getImageView().getLayoutX()-115)*75;
+                temp=temp/1000;
                 if(temp>initialTimerValue) {
                     initialTimerValue=temp;
                 }
@@ -336,7 +337,7 @@ public class Level implements Serializable {
         Random random=new Random();
         grid.forEach((k,v) -> {
             zombiesPos.put(k,new ArrayList<Zombie>());
-            int numZombiesPerRow=2+random.nextInt(levelNumber/2);
+            int numZombiesPerRow=2+random.nextInt(1+(int)(levelNumber/2));
             int scalingFactor=170-(levelNumber-1)*10;
             int numBoostedZombies=(levelNumber>3)?(int)(numZombiesPerRow*0.4):0;
             for(int i=0;i<numZombiesPerRow;i++) {
@@ -539,6 +540,22 @@ public class Level implements Serializable {
         }
     }
 
+    private void initCheckWin() {
+        checkWinTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
+            int count=0;
+            for(int row:zombiesPos.keySet()) {
+                if(zombiesPos.get(row).size()!=0) {
+                    count++;
+                }
+            }
+            if(count==0) {
+                winGame();
+            }
+        }));
+        checkWinTimeline.setCycleCount(Timeline.INDEFINITE);
+        allTimeLines.add(checkWinTimeline);
+    }
+
     private void addCardDrags(ImageView card,int index) {
         card.setOnDragDetected(e -> {
             Dragboard cardDragboard=card.startDragAndDrop(TransferMode.ANY);
@@ -645,6 +662,10 @@ public class Level implements Serializable {
 
     }
 
+    public void winGame() {
+        levelComplete=true;
+
+    }
 
 
     public boolean gameWon(){
