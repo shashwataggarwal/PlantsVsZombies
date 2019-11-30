@@ -20,6 +20,11 @@ public class BasicZombie extends Zombie{
     }
 
     @Override
+    public int getType() {
+        return 0;
+    }
+
+    @Override
     public Image getImage()  {
         if(image==null) {
             try {

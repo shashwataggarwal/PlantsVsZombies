@@ -64,6 +64,7 @@ public class gameLevelController implements Initializable {
     public ProgressBar progressBar;
     public Pane gameWonPane;
     public Pane gameLostPane;
+    public Button exitWinButton;
     private Image sunImage;
     private Image peaShooterImage;
     private Image sunflowerImage;
@@ -77,6 +78,7 @@ public class gameLevelController implements Initializable {
     private boolean wallnutRefreshed;
     private boolean specialRefreshed;
     public int initProgressTimerValue;
+    @FXML
     private Button nextLevelButton;
     public int currProgress;
     private levelControllers menuController;
@@ -121,7 +123,12 @@ public class gameLevelController implements Initializable {
         appWindow.show();
     }
 
-    public void startLevel(int i,levelControllers mainController) {
+    public void resumeLevel(levelControllers mainController,LevelData levelData) {
+        startLevel(levelData.getLevelNumber(),mainController,1);
+        level.loadGame(levelData);
+    }
+
+    public void startLevel(int i,levelControllers mainController,int type) {
         cards=new ArrayList<ImageView>();
         this.menuController=mainController;
         cards.add(peaShooterCard);
@@ -143,6 +150,9 @@ public class gameLevelController implements Initializable {
         ls.add(l5);
         currentLevelNumber = i;
         level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
+        if(type==0) {
+            level.startGame();
+        }
     }
 
     public void nextLevelHandler(ActionEvent e) throws IOException {
@@ -150,14 +160,14 @@ public class gameLevelController implements Initializable {
         gameWonPane.setVisible(false);
         gameWonPane.setDisable(true);
 //        level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
-        menuController.playLevel(currentLevelNumber);
+        menuController.playLevel(currentLevelNumber,0,null);
     }
     public void restartLevelHandler(ActionEvent e) throws IOException {
         gamePane.setDisable(false);
         gameLostPane.setVisible(false);
         gameLostPane.setDisable(true);
 //        level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
-        menuController.playLevel(currentLevelNumber);
+        menuController.playLevel(currentLevelNumber,0,null);
     }
 
     public void gameWon(){
@@ -185,5 +195,10 @@ public class gameLevelController implements Initializable {
         gamePane.setDisable(true);
         gameLostPane.setVisible(true);
         gameLostPane.setDisable(false);
+    }
+
+    public void saveLevelHandler(ActionEvent e) throws IOException {
+        level.saveGame();
+        System.out.println("LEVEL SAVED!");
     }
 }

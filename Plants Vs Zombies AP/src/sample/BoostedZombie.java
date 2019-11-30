@@ -21,6 +21,11 @@ public class BoostedZombie extends Zombie{
     }
 
     @Override
+    public int getType() {
+        return 1;
+    }
+
+    @Override
     public Image getImage()  {
         if(image==null) {
             try {

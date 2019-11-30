@@ -130,7 +130,7 @@
                </image>
             </ImageView>
             <Button alignment="CENTER" contentDisplay="CENTER" layoutX="108.0" layoutY="36.0" mnemonicParsing="false" onAction="#resumeGameEventHandler" prefHeight="31.0" prefWidth="110.0" text="Resume" textAlignment="CENTER" />
-            <Button alignment="CENTER" contentDisplay="CENTER" layoutX="108.0" layoutY="90.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="110.0" text="Save Game" textAlignment="CENTER" />
+            <Button alignment="CENTER" contentDisplay="CENTER" layoutX="108.0" layoutY="90.0" mnemonicParsing="false" onAction="#saveLevelHandler" prefHeight="31.0" prefWidth="110.0" text="Save Game" textAlignment="CENTER" />
             <Button alignment="CENTER" contentDisplay="CENTER" layoutX="108.0" layoutY="191.0" mnemonicParsing="false" onAction="#exitGameEventHandler" prefHeight="31.0" prefWidth="110.0" text="Exit" textAlignment="CENTER" />
          </children></Pane>
       <Pane fx:id="gameWonPane" disable="true" layoutX="206.0" layoutY="103.0" prefHeight="270.0" prefWidth="325.0" stylesheets="@gameLevel.css" visible="false">

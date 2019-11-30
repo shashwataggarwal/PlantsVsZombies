@@ -14,13 +14,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Level implements Serializable {
 
@@ -59,11 +55,13 @@ public class Level implements Serializable {
     private Timeline progressTimeline;
     private ArrayList<Timeline> allTimeLines;
     private Timeline checkWinTimeline;
+    private ArrayList<Integer> currRefreshTimes;
     private gameLevelController gameLevelController;
     public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar, gameLevelController gameLevelController) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
         this.lawnMowersImages=lawnMowersImages;
+        currRefreshTimes=new ArrayList<>();
         this.sunLabel=sunLabel;
         this.gamePane=gamePane;
         this.progressTimer=progressTimer;
@@ -101,7 +99,74 @@ public class Level implements Serializable {
                 break;
         }
         grid= new HashMap<>();
+    }
+
+
+    public void startGame() {
         initLevel();
+    }
+
+    public void loadGame(LevelData levelData) {
+        createGrid();
+        this.sunCount=levelData.getSunCount();
+        initCards();
+        initLawnMowers();
+        addDragEventHandlers();
+        initSuns(levelData);
+        initLoadedZombies(levelData);
+
+        play();
+        //progress
+    }
+
+    private void initLoadedPlants(LevelData levelData) {
+        
+    }
+
+    private void initLoadedZombies(LevelData levelData) {
+        grid.forEach((k,v) -> {
+            zombiesPos.put(k,new ArrayList<Zombie>());
+        });
+        ArrayList<ZombieData> zombieData=levelData.getZombies();
+        zombieData.forEach(data -> {
+            int type=data.getType();
+            System.out.println(type);
+            if(type==0) {
+                type=1;
+            }
+            else {
+                type=0;
+            }
+            genZombie(data.getX(),data.getY(),type,data.getHealth());
+        });
+    }
+
+    private void initSuns(LevelData levelData) {
+        ArrayList<SunData> sunData=levelData.getSuns();
+        sunData.forEach(data-> {
+            Sun sun=new Sun();
+            ImageView sunImage=new ImageView(sun.getImage());
+            sunImage.setVisible(true);
+            sunImage.setDisable(false);
+            sunImage.setLayoutX(data.getX());
+            sunImage.setLayoutY(data.getY());
+            sunImage.setFitHeight(40);
+            sunImage.setFitWidth(40);
+            gamePane.getChildren().add(sunImage);
+            sun.setImageView(sunImage);
+            initSun(sun);
+            suns.add(sun);
+            if(data.getFinalY()!=0) {
+                sun.startMovement(0,2,data.getFinalY());
+            }
+        });
+
+    }
+
+    private void play() {
+        moveZombies();
+        startGeneratingSunTokens();
+        initCheckWin();
     }
 
     public void loseGame() {
@@ -154,6 +219,7 @@ public class Level implements Serializable {
 
     private void initSun(Sun x) {
         x.getImageView().setOnMouseClicked(e-> {
+            x.pickUp();
             increaseSunCount();
             gamePane.getChildren().remove(x.getImageView());
         });
@@ -227,7 +293,7 @@ public class Level implements Serializable {
         initLawnMowers();
         addDragEventHandlers();
         play();
-
+        startProgress();
     }
 
 
@@ -239,12 +305,7 @@ public class Level implements Serializable {
 
     }
 
-    private void play() {
-        moveZombies();
-        startGeneratingSunTokens();
-        startProgress();
-        initCheckWin();
-    }
+
 
     private void startProgress() {
         System.out.println(initialTimerValue);
@@ -288,6 +349,7 @@ public class Level implements Serializable {
             int x,y;
             x=150+random.nextInt(450);
             y=90+random.nextInt(300);
+            sun.setFinalY(y);
             sunImage.setLayoutX(x);
             sunImage.setLayoutY(0);
             sunImage.setVisible(true);
@@ -356,6 +418,10 @@ public class Level implements Serializable {
     }
 
     private void genZombie(int x,int row,int type) {
+        genZombie(x,row,type,-1);
+    }
+
+    private void genZombie(int x,int row,int type,int health) {
         Zombie gen=null;
         ImageView imageView=null;
         if(type==0) {
@@ -378,6 +444,9 @@ public class Level implements Serializable {
         imageView.setDisable(false);
         zombiesPos.get(row).add(gen);
         gamePane.getChildren().add(imageView);
+        if(health!=-1) {
+            gen.setHealth(health);
+        }
     }
 
     private void initCards() {
@@ -435,6 +504,93 @@ public class Level implements Serializable {
         return allTimeLines;
     }
 
+    public void addLawnMowerMovement(Timeline lawnMove) {
+        allTimeLines.add(lawnMove);
+    }
+
+    public void saveGame() {
+        LevelData currentLevel = new LevelData(initPlantData(), initZombieData(), initBulletData(),
+                initSunData(), initLawnMowerData(),currRefreshTimes,this.levelNumber,this.sunCount, this.initialTimerValue, this.currentTimerValue);
+        ObjectOutputStream out = null;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM_dd_hh_mm_ss");
+        String dateAsString = simpleDateFormat.format(new Date());
+
+        try{
+            out=new ObjectOutputStream(new FileOutputStream("./SavedGames/"+Integer.toString(levelNumber)+"_"+dateAsString+".bin"));
+            out.writeObject(currentLevel);
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if(out!=null){
+                try {
+                    out.close();
+                } catch (Exception f){
+                    f.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private ArrayList<BulletData> initBulletData(){
+        ArrayList<BulletData> bulletData = new ArrayList<>();
+        bullets.forEach((y, v) -> {
+            for (Positionable bullet : v) {
+                if(bullet.getImageView().isVisible()){
+                    int type=0;
+                    if(bullet instanceof ShooterBombSunflower.SpecialBullet) {
+                        type=1;
+                    }
+                    bulletData.add(new BulletData((int)bullet.getImageView().getLayoutX(), y,type));
+                }
+            }
+        });
+
+        return bulletData;
+    }
+
+
+    private ArrayList<LawnMowerData> initLawnMowerData(){
+        ArrayList<LawnMowerData> lawnMowerData = new ArrayList<>();
+        lawnMowers.forEach((y, lawnMower) -> {
+            lawnMowerData.add(new LawnMowerData((int)lawnMower.getImageView().getLayoutX(),y,lawnMower.isUsed()));
+
+        });
+        return lawnMowerData;
+    }
+    private ArrayList<SunData> initSunData(){
+        ArrayList<SunData> sunData = new ArrayList<>();
+        suns.forEach(sun->{
+            if(!sun.isPickedUp()){
+                sunData.add(new SunData((int)sun.getImageView().getLayoutX(),(int)sun.getImageView().getLayoutY(), sun.getFinalY()));
+            }
+        });
+
+        return sunData;
+    }
+
+    private  ArrayList<PlantData> initPlantData(){
+        ArrayList<PlantData> plantData = new ArrayList<PlantData>();
+        plants.forEach((y,v)->{
+            v.forEach((x,plant)->{
+                if(plant.isAlive()){
+                    plantData.add(new PlantData(x,y,plant.getHealth(),plant.getType()));
+                }
+            });
+        });
+        return  plantData;
+    }
+
+    private  ArrayList<ZombieData> initZombieData(){
+        ArrayList<ZombieData> zombieData = new ArrayList<ZombieData>();
+        zombiesPos.forEach((y,v)->{
+            v.forEach((zombie)->{
+                if(zombie.isAlive()){
+                    zombieData.add(new ZombieData((int)zombie.getImageView().getLayoutX(),y,zombie.getHealth(),zombie.getType()));
+                }
+            });
+        });
+        return  zombieData;
+    }
     private void createRow(int y) {
         int y_cord=79+76*y;
         ArrayList<ImageView> temp=new ArrayList<ImageView>();
@@ -563,6 +719,7 @@ public class Level implements Serializable {
     }
 
     private void addCardDrags(ImageView card,int index) {
+        currRefreshTimes.add(0);
         card.setOnDragDetected(e -> {
             Dragboard cardDragboard=card.startDragAndDrop(TransferMode.ANY);
             ClipboardContent content = new ClipboardContent();
@@ -577,10 +734,12 @@ public class Level implements Serializable {
                 int i=cards.indexOf(card);
                 cardLabels.get(i).setVisible(true);
                 cardLabels.get(i).setText(Integer.toString(refreshTime.get(i)));
+                currRefreshTimes.set(i,refreshTime.get(i));
                 plantStatus.set(i,false);
                 cardTimeline.set(i,new Timeline(new KeyFrame(Duration.seconds(1), new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent actionEvent) {
+                        currRefreshTimes.set(i,currRefreshTimes.get(i)-1);
                         cardLabels.get(i).setText(Integer.toString(Integer.parseInt(cardLabels.get(i).getText())-1));
                     }
                 })));

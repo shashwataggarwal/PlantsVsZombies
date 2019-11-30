@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +11,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 public class mainMenuController implements levelControllers{
     private Stage appWindow;
@@ -24,9 +29,9 @@ public class mainMenuController implements levelControllers{
 //        appWindow.setScene(gameLevelScene);
 //        appWindow.show();
 
-        playLevel(1);
+        playLevel(1,0,null);
     }
-    public void playLevel(int levelNumber) {
+    public void playLevel(int levelNumber,int type,LevelData levelData) {
 //        appWindow.setScene(gameLevelScene);
 //        appWindow.show();
 
@@ -45,9 +50,30 @@ public class mainMenuController implements levelControllers{
         appWindow.setScene(scene);
 
         appWindow.show();
-        controller.startLevel(levelNumber,this);
+        if(type==0) {
+            controller.startLevel(levelNumber, this, 0);
+        }
+        else {
+            controller.resumeLevel(this,levelData);
+        }
     }
     public void loadGameEventHandler(ActionEvent e) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("loadMenu.fxml"));
+        appWindow=(Stage)((Node)e.getSource()).getScene().getWindow();
+        Parent root = null;
+        try {
+            root = (Parent)fxmlLoader.load();
+        } catch (IOException f) {
+            f.printStackTrace();
+        }
+        loadMenuController controller = fxmlLoader.<loadMenuController>getController();
+        Scene scene = new Scene(root);
+
+        appWindow.setScene(scene);
+
+        appWindow.show();
+        controller.setMainMenuController(this);
+
     }
 
     public void selectLevelEventHandler(ActionEvent e) throws IOException {
@@ -57,5 +83,6 @@ public class mainMenuController implements levelControllers{
         appWindow.setScene(gameLevelScene);
         appWindow.show();
     }
+
 
 }

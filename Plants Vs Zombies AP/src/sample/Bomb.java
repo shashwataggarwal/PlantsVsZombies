@@ -89,12 +89,14 @@ class CherryBomb extends Bomb {
         blastTimeline.play();
     }
 
-    public boolean shouldZombieDie(ImageView zombie) {
+    @Override
+    public int getType() {
+        return 2;
+    }
+
+    private boolean shouldZombieDie(ImageView zombie) {
         double x_diff=zombie.getLayoutX()-imageView.getLayoutX();
         double y_diff=zombie.getLayoutY()-imageView.getLayoutY();
-        if(x_diff<=112 && x_diff>=-56 && y_diff<=100 && y_diff>=-100) {
-            return true;
-        }
-        return false;
+        return x_diff <= 112 && x_diff >= -56 && y_diff <= 100 && y_diff >= -100;
     }
 }

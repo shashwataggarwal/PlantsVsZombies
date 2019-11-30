@@ -6,6 +6,7 @@ public abstract class Plant extends Character {
     }
     public abstract int getRechargeTime();
     public abstract int getCost();
+    public abstract int getType();
     public void reduceHealth(int amount) {
         health-=amount;
         if(health<=0) {

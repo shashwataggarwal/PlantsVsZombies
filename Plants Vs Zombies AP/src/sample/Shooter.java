@@ -11,6 +11,7 @@ import javafx.util.Duration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -115,6 +116,7 @@ class Peashooter extends Shooter {
             shootTimeline.stop();
         }
 
+
         @Override
         public void startMovement(int dir, int offset, int distance, int milli, boolean remove, Pane gamePane) {
             movementTimeline=new Timeline(new KeyFrame(Duration.millis(milli), new EventHandler<ActionEvent>() {
@@ -172,6 +174,9 @@ class Peashooter extends Shooter {
 
     }
 
-
+    @Override
+    public int getType() {
+        return 0;
+    }
 }
 

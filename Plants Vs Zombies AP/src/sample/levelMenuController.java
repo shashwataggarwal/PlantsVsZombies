@@ -12,7 +12,7 @@ import javafx.util.Duration;
 import java.io.IOException;
 
 interface levelControllers {
-    public void playLevel(int levelNumber);
+    public void playLevel(int levelNumber,int type,LevelData levelData);
 }
 
 public class levelMenuController implements levelControllers{
@@ -29,27 +29,27 @@ public class levelMenuController implements levelControllers{
     }
     public void l1(ActionEvent e) {
         initAppWindow(e);
-        playLevel(1);
+        playLevel(1,0,null);
     }
     public void l2(ActionEvent e) {
         initAppWindow(e);
-        playLevel(2);
+        playLevel(2,0,null);
     }
     public void l3(ActionEvent e) {
         initAppWindow(e);
-        playLevel(3);
+        playLevel(3,0,null);
     }
     public void l4(ActionEvent e) {
         initAppWindow(e);
-        playLevel(4);
+        playLevel(4,0,null);
     }
     public void l5(ActionEvent e) {
         initAppWindow(e);
-        playLevel(5);
+        playLevel(5,0,null);
     }
 
     @Override
-    public void playLevel(int levelNumber) {
+    public void playLevel(int levelNumber,int type,LevelData levelData) {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("gameLevel.fxml"));
 
         Parent root = null;
@@ -64,6 +64,11 @@ public class levelMenuController implements levelControllers{
         appWindow.setScene(scene);
 
         appWindow.show();
-        controller.startLevel(levelNumber,this);
+        if(type==0) {
+            controller.startLevel(levelNumber, this, 0);
+        }
+        else {
+            controller.resumeLevel(this,levelData);
+        }
     }
 }

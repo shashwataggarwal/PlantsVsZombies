@@ -38,6 +38,11 @@ class Sunflower extends SunPlant {
         return image;
     }
 
+    @Override
+    public int getType() {
+        return 1;
+    }
+
     public void setSunTimeline(Timeline sunTimeline) {
         this.sunTimeline = sunTimeline;
     }

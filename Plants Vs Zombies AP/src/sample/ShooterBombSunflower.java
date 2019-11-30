@@ -199,4 +199,9 @@ public class ShooterBombSunflower extends Plant {
         }
         return false;
     }
+
+    @Override
+    public int getType() {
+        return 4;
+    }
 }

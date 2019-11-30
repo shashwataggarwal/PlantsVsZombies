@@ -15,8 +15,8 @@ import java.io.Serializable;
 public abstract class Positionable implements Serializable {
     private int x;
     private int y;
-    protected ImageView imageView;
-    protected Timeline movementTimeline;
+    transient protected ImageView imageView;
+    transient protected Timeline movementTimeline;
     public Positionable(int x,int y)  {
         this.x=x;
         this.y=y;

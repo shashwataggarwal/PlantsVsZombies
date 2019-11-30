@@ -4,3 +4,11 @@
     -fx-text-fill : #ffffff;
     -fx-font-weight : bold;
 }
+
+.scroll-pane > .viewport{
+    -fx-background-image : url("../images/mainMenuScreen.jpg");
+}
+
+.scroll-pane > .corner{
+    -fx-background-color : transparent;
+}

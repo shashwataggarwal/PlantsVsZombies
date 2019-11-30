@@ -17,6 +17,7 @@ public abstract class Zombie extends Character {
     protected int speed;
     protected HashMap<Integer,Plant> plants;
     protected boolean move=true;
+    public abstract int getType();
     public Zombie(int health,HashMap<Integer,Plant> plants) {
         super(health);
         this.plants=plants;
@@ -105,7 +106,7 @@ public abstract class Zombie extends Character {
                 }
                 if(intersects(lawnMower.getImageView(),imageView)) {
                     if(!lawnMower.isUsed() && !lawnMower.isInUse()) {
-                        lawnMower.use(gamePane);
+                        lawnMower.use(gamePane,level);
                     }
                     else if(lawnMower.isUsed()){
                         System.out.println("GAME LOST");

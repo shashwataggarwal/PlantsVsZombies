@@ -31,7 +31,7 @@ public class LawnMower extends Positionable{
 
     public boolean isInUse() { return inUse;}
 
-    public void use(Pane gamePane) {
+    public void use(Pane gamePane,Level level) {
         inUse=true;
         initialX=(int)imageView.getLayoutX();
         movementTimeline=new Timeline(new KeyFrame(Duration.millis(50), new EventHandler<ActionEvent>() {
@@ -60,6 +60,7 @@ public class LawnMower extends Positionable{
             imageView.setLayoutX(initialX);
             imageView.setVisible(false);
         });
+        level.addLawnMowerMovement(movementTimeline);
         movementTimeline.play();
     }
     public int getRow() {

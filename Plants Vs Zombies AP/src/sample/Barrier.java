@@ -34,6 +34,11 @@ class Wallnut extends Barrier {
     }
 
     @Override
+    public int getType() {
+        return 3;
+    }
+
+    @Override
     public int getInitialStopPower() {
         return WALLNUT_STOP_POWER;
     }
