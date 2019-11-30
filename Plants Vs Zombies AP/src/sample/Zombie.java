@@ -9,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Zombie extends Character {
@@ -17,10 +18,20 @@ public abstract class Zombie extends Character {
     protected int speed;
     protected HashMap<Integer,Plant> plants;
     protected boolean move=true;
+    private ArrayList<Zombie> zombiesInCurrRow;
     public abstract int getType();
     public Zombie(int health,HashMap<Integer,Plant> plants) {
         super(health);
         this.plants=plants;
+        zombiesInCurrRow=new ArrayList<>();
+    }
+
+    public ArrayList<Zombie> getZombiesInCurrRow() {
+        return zombiesInCurrRow;
+    }
+
+    public void setZombiesInCurrRow(ArrayList<Zombie> zombiesInCurrRow) {
+        this.zombiesInCurrRow = zombiesInCurrRow;
     }
 
     public int getAttackPower() {

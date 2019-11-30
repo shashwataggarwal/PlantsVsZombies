@@ -139,6 +139,9 @@ public class Level implements Serializable {
         System.out.println("CURRENT VALUE " + currentTimerValue);
         progressTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
             currentTimerValue--;
+            if(currentTimerValue<0) {
+                return;
+            }
             String t="";
             t+= currentTimerValue /60;
             t+=":";
@@ -151,7 +154,7 @@ public class Level implements Serializable {
             progressBar.setProgress(1- currentTimerValue /(double)initialTimerValue);
         }));
         allTimeLines.add(progressTimeline);
-        progressTimeline.setCycleCount(initialTimerValue);
+        progressTimeline.setCycleCount(currentTimerValue);
         progressTimeline.play();
     }
 
@@ -208,6 +211,8 @@ public class Level implements Serializable {
             }
         }
     }
+
+
     private void initLoadedPlants(LevelData levelData) {
         ArrayList<PlantData> plantData=levelData.getPlants();
         plantData.forEach(data -> {
@@ -292,7 +297,7 @@ public class Level implements Serializable {
 
     private void initPeaShooter(Peashooter peashooter,int row) {
         Timeline shootTimeline=new Timeline(new KeyFrame(Duration.seconds(peashooter.getShootingSpeed()),e-> {
-            if(aliveZombieInRow(row)) {
+            if(aliveZombieInRow(row,(int)peashooter.getImageView().getLayoutX())) {
                 Peashooter.PeaBullet pea = peashooter.new PeaBullet(zombiesPos.get(row));
                 ImageView peaImageView = new ImageView(pea.getImage());
                 pea.setImageView(peaImageView);
@@ -358,7 +363,7 @@ public class Level implements Serializable {
         plant.setSunTimeline(sunTimeline);
 
         Timeline shootTimeline=new Timeline(new KeyFrame(Duration.seconds(plant.getSbsShootingSpeed()),e-> {
-            if(aliveZombieInRow(row)) {
+            if(aliveZombieInRow(row,(int)plant.getImageView().getLayoutX())) {
                 ShooterBombSunflower.SpecialBullet sbl = plant.new SpecialBullet(zombiesPos.get(row));
                 ImageView peaImageView = new ImageView(sbl.getImage());
                 sbl.setImageView(peaImageView);
@@ -381,7 +386,7 @@ public class Level implements Serializable {
 
 
     public void increaseSunCount() {
-        sunCount+=25;
+        sunCount+=50;
         sunLabel.setText(Integer.toString(sunCount));
         for(int i=0;i<levelNumber;i++) {
             if(cards.get(i).isDisabled() && cost.get(i)<=sunCount && plantStatus.get(i)) {
@@ -391,9 +396,9 @@ public class Level implements Serializable {
         }
     }
 
-    private boolean aliveZombieInRow(int row) {
+    private boolean aliveZombieInRow(int row,int x) {
         for(Zombie zombie:zombiesPos.get(row)) {
-            if(zombie.getImageView().getLayoutX()<720 && zombie.isAlive()) {
+            if(zombie.getImageView().getLayoutX()<720 && zombie.isAlive() && zombie.getImageView().getLayoutX()>x) {
                 return true;
             }
         }
@@ -436,6 +441,9 @@ public class Level implements Serializable {
         currentTimerValue =initialTimerValue;
         progressTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
             currentTimerValue--;
+            if(currentTimerValue<0) {
+                return;
+            }
             String t="";
             t+= currentTimerValue /60;
             t+=":";
@@ -455,7 +463,7 @@ public class Level implements Serializable {
 
     private void startGeneratingSunTokens() {
         Random random=new Random();
-        sunGeneratingTimeline=new Timeline(new KeyFrame(Duration.seconds(10),e-> {
+        sunGeneratingTimeline=new Timeline(new KeyFrame(Duration.seconds(7),e-> {
             Sun sun=new Sun();
             ImageView sunImage=new ImageView(sun.getImage());
             sunImage.setFitHeight(40);
@@ -483,9 +491,9 @@ public class Level implements Serializable {
     private void moveZombies() {
         zombiesPos.forEach((k,v)-> {
             v.forEach(zombie -> {
-                zombie.startMovement(1,2,50000,transparentImage,lawnMowers.get(k),this,gamePane);
+                zombie.startMovement(1,1,50000,transparentImage,lawnMowers.get(k),this,gamePane);
                 allTimeLines.add(zombie.getMovementTimeline());
-                int temp=(int)(zombie.getImageView().getLayoutX()-115)*75;
+                int temp=(int)(zombie.getImageView().getLayoutX()-720)*150;
                 temp=temp/1000;
                 if(temp>initialTimerValue) {
                     initialTimerValue=temp;
@@ -517,16 +525,19 @@ public class Level implements Serializable {
         Random random=new Random();
         grid.forEach((k,v) -> {
             zombiesPos.put(k,new ArrayList<Zombie>());
-            int numZombiesPerRow=2+random.nextInt(1+(int)(levelNumber/2));
+            int numZombiesPerRow=2+levelNumber+random.nextInt(1);
             int scalingFactor=300-(levelNumber-1)*10;
             int numBoostedZombies=(levelNumber>3)?(int)(numZombiesPerRow*0.4):0;
+            ArrayList<Integer> types=new ArrayList<>();
+            for(int i=0;i<numBoostedZombies;i++) {
+                types.add(1);
+            }
+            while(types.size()<numZombiesPerRow) {
+                types.add(0);
+            }
+            Collections.shuffle(types);
             for(int i=0;i<numZombiesPerRow;i++) {
-                    int type=0;
-                    if(numBoostedZombies>0) {
-                        type=1;
-                        numBoostedZombies--;
-                    }
-                    genZombie(800 + i * scalingFactor + random.nextInt(scalingFactor-100), k, type);
+                    genZombie(800 + i * scalingFactor + random.nextInt(scalingFactor-100), k, types.get(i));
             }
         });
     }

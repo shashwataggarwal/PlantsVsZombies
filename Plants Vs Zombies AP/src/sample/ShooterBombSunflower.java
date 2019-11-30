@@ -77,9 +77,15 @@ public class ShooterBombSunflower extends Plant {
     public int getCost() {
         return SBS_COST;
     }
+    @Override
+    public void remove() {
+        shootingTimeline.stop();
+        sunTimeline.stop();
+    }
+
 
     public class SpecialBullet extends Positionable implements Bullet {
-        private static final int SBL_DAMAGE=5;
+        private static final int SBL_DAMAGE=7;
         private static final int SBL_SPEED=10;
         private ArrayList<Zombie> zombies;
         private Image image;
@@ -100,7 +106,7 @@ public class ShooterBombSunflower extends Plant {
         public Image getImage() {
             if(image==null) {
                 try {
-                    image=new Image(new FileInputStream("./images/pea.png"));
+                    image=new Image(new FileInputStream("./images/specialPea.png"));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -163,11 +169,6 @@ public class ShooterBombSunflower extends Plant {
         }
     }
 
-    @Override
-    public void remove() {
-        shootingTimeline.stop();
-        sunTimeline.stop();
-    }
 
     public void blast(Pane gamePane,Image blank) {
         imageView.setDisable(true);
@@ -194,7 +195,7 @@ public class ShooterBombSunflower extends Plant {
     public boolean shouldZombieDie(ImageView zombie) {
         double x_diff=zombie.getLayoutX()-imageView.getLayoutX();
         double y_diff=zombie.getLayoutY()-imageView.getLayoutY();
-        if(x_diff<=112 && x_diff>=-56 && y_diff<=100 && y_diff>=-100) {
+        if(x_diff<=112 && x_diff>=-85 && y_diff<=100 && y_diff>=-100) {
             return true;
         }
         return false;

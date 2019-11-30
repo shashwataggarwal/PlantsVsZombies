@@ -74,6 +74,11 @@ class Peashooter extends Shooter {
     }
 
     @Override
+    public void remove() {
+        shootTimeline.stop();
+    }
+
+    @Override
     public int getRechargeTime() {
         return PEASHOOTER_RECHARGE_TIME;
     }
@@ -111,10 +116,7 @@ class Peashooter extends Shooter {
         }
 
 
-        @Override
-        public void remove() {
-            shootTimeline.stop();
-        }
+
 
 
         @Override

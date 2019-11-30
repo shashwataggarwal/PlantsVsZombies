@@ -97,6 +97,6 @@ class CherryBomb extends Bomb {
     private boolean shouldZombieDie(ImageView zombie) {
         double x_diff=zombie.getLayoutX()-imageView.getLayoutX();
         double y_diff=zombie.getLayoutY()-imageView.getLayoutY();
-        return x_diff <= 112 && x_diff >= -56 && y_diff <= 100 && y_diff >= -100;
+        return x_diff <= 112 && x_diff >= -85 && y_diff <= 100 && y_diff >= -100;
     }
 }
