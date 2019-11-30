@@ -25,13 +25,22 @@ public class LawnMower extends Positionable{
         this.zombies=zombies;
         this.inUse=false;
     }
+
+    public void setUsed(boolean used) {
+        this.used = used;
+    }
+
     public boolean isUsed() {
         return used;
     }
 
     public boolean isInUse() { return inUse;}
 
-    public void use(Pane gamePane,Level level) {
+    public void setInitialX(int initialX) {
+        this.initialX = initialX;
+    }
+
+    public void use(Pane gamePane, Level level) {
         inUse=true;
         initialX=(int)imageView.getLayoutX();
         movementTimeline=new Timeline(new KeyFrame(Duration.millis(50), new EventHandler<ActionEvent>() {

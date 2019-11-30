@@ -110,17 +110,136 @@ public class Level implements Serializable {
         createGrid();
         this.sunCount=levelData.getSunCount();
         initCards();
-        initLawnMowers();
         addDragEventHandlers();
         initSuns(levelData);
         initLoadedZombies(levelData);
-
+        initLoadedPlants(levelData);
+        initLawnMowers();
+        initLoadedLawnMowers(levelData);
+        initLoadedCards(levelData);
         play();
+        initLoadedProgressBar(levelData);
         //progress
     }
 
+    private void initLoadedProgressBar(LevelData levelData){
+        initialTimerValue = levelData.getInitialTimerValue();
+        currentTimerValue = levelData.getCurrentTimerValue();
+        String st="";
+        st+= currentTimerValue /60;
+        st+=":";
+        int ze= currentTimerValue %60;
+        if(ze<10) {
+            st+="0";
+        }
+        st+=ze;
+        progressTimer.setText(st);
+        progressBar.setProgress(1- currentTimerValue /(double)initialTimerValue);
+
+        System.out.println("CURRENT VALUE " + currentTimerValue);
+        progressTimeline=new Timeline(new KeyFrame(Duration.seconds(1),e-> {
+            currentTimerValue--;
+            String t="";
+            t+= currentTimerValue /60;
+            t+=":";
+            int z= currentTimerValue %60;
+            if(z<10) {
+                t+="0";
+            }
+            t+=z;
+            progressTimer.setText(t);
+            progressBar.setProgress(1- currentTimerValue /(double)initialTimerValue);
+        }));
+        allTimeLines.add(progressTimeline);
+        progressTimeline.setCycleCount(initialTimerValue);
+        progressTimeline.play();
+    }
+
+    private void initLoadedCards(LevelData levelData) {
+        ArrayList<Integer> refreshTimes = levelData.getRefreshTimes();
+        for(int i = 0; i<refreshTimes.size();i++){
+            if(refreshTimes.get(i)>0){
+                ImageView card = cards.get(i);
+                card.setOpacity(0.25);
+                card.setDisable(true);
+
+                cardLabels.get(i).setVisible(true);
+                cardLabels.get(i).setText(Integer.toString(refreshTimes.get(i)));
+                currRefreshTimes.set(i,refreshTimes.get(i));
+                plantStatus.set(i,false);
+                int finalI = i;
+                cardTimeline.set(i,new Timeline(new KeyFrame(Duration.seconds(1), new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        currRefreshTimes.set(finalI,currRefreshTimes.get(finalI)-1);
+                        cardLabels.get(finalI).setText(Integer.toString(Integer.parseInt(cardLabels.get(finalI).getText())-1));
+                    }
+                })));
+                allTimeLines.add(cardTimeline.get(i));
+                cardTimeline.get(i).setCycleCount(refreshTimes.get(i));
+                int finalI1 = i;
+                cardTimeline.get(i).setOnFinished(f-> {
+                    plantStatus.set(finalI1,true);
+                    cardLabels.get(finalI1).setVisible(false);
+                    if(sunCount>=cost.get(finalI1)) {
+                        cards.get(finalI1).setOpacity(1);
+                        cards.get(finalI1).setDisable(false);
+                    }
+                });
+                cardTimeline.get(i).play();
+            }
+        }
+    }
+
+    private void initLoadedLawnMowers(LevelData levelData) {
+        ArrayList<LawnMowerData> lawnMowerData=levelData.getLawnMowers();
+        for(int i=0;i<lawnMowerData.size();i++) {
+            LawnMower curr=lawnMowers.get(lawnMowerData.get(i).getY());
+            if(lawnMowerData.get(i).isUsed()) {
+                curr.getImageView().setVisible(false);
+                curr.setUsed(true);
+            }
+            if(lawnMowerData.get(i).getX()>150) {
+                curr.getImageView().setVisible(true);
+                int initialX=(int)curr.getImageView().getLayoutX();
+                curr.getImageView().setLayoutX(lawnMowerData.get(i).getX());
+                curr.use(gamePane,this);
+                curr.setInitialX(initialX);
+            }
+        }
+    }
     private void initLoadedPlants(LevelData levelData) {
-        
+        ArrayList<PlantData> plantData=levelData.getPlants();
+        plantData.forEach(data -> {
+            Plant temp=null;
+            ImageView gridPos=grid.get(data.getY()).get(data.getX());
+            switch (data.getType()) {
+                case 0:
+                    temp=new Peashooter();
+                    initPeaShooter((Peashooter) temp,data.getY());
+                    break;
+                case 1:
+                    temp=new Sunflower();
+                    initSunflower((Sunflower)temp,data.getY());
+                    break;
+                case 2:
+                    temp=new CherryBomb(zombiesPos);
+                    initCherryBomb((CherryBomb)temp);
+                    break;
+                case 3:
+                    temp=new Wallnut();
+                    break;
+                case 4:
+                    temp=new ShooterBombSunflower(zombiesPos);
+                    initSpecial((ShooterBombSunflower)temp,data.getY());
+                    break;
+            }
+            temp.setHealth(data.getHealth());
+            temp.setImageView(gridPos);
+            gridPos.setImage(temp.getImage());
+            gridPos.setOpacity(1);
+            plants.get(data.getY()).put(data.getX(),temp);
+        });
     }
 
     private void initLoadedZombies(LevelData levelData) {
@@ -130,13 +249,7 @@ public class Level implements Serializable {
         ArrayList<ZombieData> zombieData=levelData.getZombies();
         zombieData.forEach(data -> {
             int type=data.getType();
-            System.out.println(type);
-            if(type==0) {
-                type=1;
-            }
-            else {
-                type=0;
-            }
+//            System.out.println(type);
             genZombie(data.getX(),data.getY(),type,data.getHealth());
         });
     }
@@ -159,6 +272,7 @@ public class Level implements Serializable {
             if(data.getFinalY()!=0) {
                 sun.startMovement(0,2,data.getFinalY());
             }
+            allTimeLines.add(sun.getMovementTimeline());
         });
 
     }
@@ -404,7 +518,7 @@ public class Level implements Serializable {
         grid.forEach((k,v) -> {
             zombiesPos.put(k,new ArrayList<Zombie>());
             int numZombiesPerRow=2+random.nextInt(1+(int)(levelNumber/2));
-            int scalingFactor=170-(levelNumber-1)*10;
+            int scalingFactor=300-(levelNumber-1)*10;
             int numBoostedZombies=(levelNumber>3)?(int)(numZombiesPerRow*0.4):0;
             for(int i=0;i<numZombiesPerRow;i++) {
                     int type=0;
@@ -412,7 +526,7 @@ public class Level implements Serializable {
                         type=1;
                         numBoostedZombies--;
                     }
-                    genZombie(800 + i * scalingFactor + random.nextInt(scalingFactor), k, type);
+                    genZombie(800 + i * scalingFactor + random.nextInt(scalingFactor-100), k, type);
             }
         });
     }
@@ -570,10 +684,12 @@ public class Level implements Serializable {
 
     private  ArrayList<PlantData> initPlantData(){
         ArrayList<PlantData> plantData = new ArrayList<PlantData>();
+        System.out.println("PLANT DATA");
         plants.forEach((y,v)->{
             v.forEach((x,plant)->{
                 if(plant.isAlive()){
                     plantData.add(new PlantData(x,y,plant.getHealth(),plant.getType()));
+//                    System.out.println("X "+x+" Y "+y+" "+plant.getHealth()+" "+plant.getType());
                 }
             });
         });
@@ -582,10 +698,12 @@ public class Level implements Serializable {
 
     private  ArrayList<ZombieData> initZombieData(){
         ArrayList<ZombieData> zombieData = new ArrayList<ZombieData>();
+        System.out.println("ZOMBIE DATA");
         zombiesPos.forEach((y,v)->{
             v.forEach((zombie)->{
                 if(zombie.isAlive()){
-                    zombieData.add(new ZombieData((int)zombie.getImageView().getLayoutX(),y,zombie.getHealth(),zombie.getType()));
+                    zombieData.add(new ZombieData((int)zombie.getImageView().getLayoutX(),y,zombie.getType(),zombie.getHealth()));
+//                    System.out.println("X "+zombie.getImageView().getLayoutX()+" Y "+y+" "+zombie.getHealth()+" "+zombie.getType());
                 }
             });
         });
