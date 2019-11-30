@@ -59,7 +59,8 @@ public class Level implements Serializable {
     private Timeline progressTimeline;
     private ArrayList<Timeline> allTimeLines;
     private Timeline checkWinTimeline;
-    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar) {
+    private gameLevelController gameLevelController;
+    public Level(int levelNumber, Pane gamePane, ArrayList<ImageView> cards, ArrayList<Label> cardLabels, ArrayList<ImageView> lawnMowersImages, Label sunLabel, Label progressTimer, ProgressBar progressBar, gameLevelController gameLevelController) {
         this.levelNumber = levelNumber;
         this.cardLabels=cardLabels;
         this.lawnMowersImages=lawnMowersImages;
@@ -70,6 +71,7 @@ public class Level implements Serializable {
         allTimeLines=new ArrayList<Timeline>();
         initialTimerValue=0;
         this.cards=cards;
+        this.gameLevelController = gameLevelController;
         cardTimeline=new ArrayList<Timeline>();
         bullets=new HashMap<Integer,ArrayList<Positionable>>();
         try {
@@ -106,6 +108,7 @@ public class Level implements Serializable {
         if(!finished) {
             finished=true;
         }
+        gameLevelController.gameLost();
     }
 
     private void initPeaShooter(Peashooter peashooter,int row) {
@@ -240,6 +243,7 @@ public class Level implements Serializable {
         moveZombies();
         startGeneratingSunTokens();
         startProgress();
+        initCheckWin();
     }
 
     private void startProgress() {
@@ -411,6 +415,7 @@ public class Level implements Serializable {
         for(int i=0;i<levelNumber;i++) {
             cards.get(i).setDisable(false);
             cards.get(i).setVisible(true);
+            cards.get(i).setOpacity(1);
             if(cost.get(i)>sunCount) {
                 cards.get(i).setOpacity(0.25);
                 cards.get(i).setDisable(true);
@@ -553,6 +558,7 @@ public class Level implements Serializable {
             }
         }));
         checkWinTimeline.setCycleCount(Timeline.INDEFINITE);
+        checkWinTimeline.play();
         allTimeLines.add(checkWinTimeline);
     }
 
@@ -664,6 +670,7 @@ public class Level implements Serializable {
 
     public void winGame() {
         levelComplete=true;
+        gameLevelController.gameWon();
 
     }
 

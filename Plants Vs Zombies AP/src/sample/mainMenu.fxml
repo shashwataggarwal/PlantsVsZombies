@@ -37,7 +37,7 @@
             <Font name="Comic Sans MS Bold" size="18.0" />
          </font>
       </Button>
-      <Button mnemonicParsing="false" prefWidth="150.0" style="-fx-background-color: #57390b;" text="Select Level" textFill="WHITE" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
+      <Button mnemonicParsing="false" onAction="#selectLevelEventHandler" prefWidth="150.0" style="-fx-background-color: #57390b;" text="Select Level" textFill="WHITE" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
          <font>
             <Font name="Comic Sans MS Bold" size="18.0" />
          </font>

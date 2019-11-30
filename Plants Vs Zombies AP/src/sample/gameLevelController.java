@@ -12,6 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -61,21 +62,29 @@ public class gameLevelController implements Initializable {
     public ImageView l5;
     public Label  progressTimer;
     public ProgressBar progressBar;
+    public Pane gameWonPane;
+    public Pane gameLostPane;
     private Image sunImage;
     private Image peaShooterImage;
     private Image sunflowerImage;
     private Image peaImage;
     private ArrayList<Animation> allAnims;
     private ArrayList<ImageView> gridPositions;
+    private ArrayList<ImageView> cards;
     private boolean peaShooterRefreshed;
     private boolean sunflowerRefreshed;
     private boolean cherryBombRefreshed;
     private boolean wallnutRefreshed;
     private boolean specialRefreshed;
     public int initProgressTimerValue;
+    private Button nextLevelButton;
     public int currProgress;
+    private levelControllers menuController;
     private Level level;
     private Random random;
+    private int currentLevelNumber;
+    private ArrayList<Label> labels;
+    private ArrayList<ImageView> ls;
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -112,25 +121,69 @@ public class gameLevelController implements Initializable {
         appWindow.show();
     }
 
-    public void startLevel(int i) {
-        ArrayList<ImageView> cards=new ArrayList<ImageView>();
+    public void startLevel(int i,levelControllers mainController) {
+        cards=new ArrayList<ImageView>();
+        this.menuController=mainController;
         cards.add(peaShooterCard);
         cards.add(sunflowerCard);
         cards.add(cherryBombCard);
         cards.add(wallnutCard);
         cards.add(specialCard);
-        ArrayList<Label> labels=new ArrayList<Label>();
+        labels=new ArrayList<Label>();
         labels.add(peashooterTimer);
         labels.add(sunflowerTimer);
         labels.add(cherrybombTimer);
         labels.add(wallnutTimer);
         labels.add(specialTimer);
-        ArrayList<ImageView> ls=new ArrayList<ImageView>();
+        ls=new ArrayList<ImageView>();
         ls.add(l1);
         ls.add(l2);
         ls.add(l3);
         ls.add(l4);
         ls.add(l5);
-        level=new Level(i,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar);
+        currentLevelNumber = i;
+        level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
+    }
+
+    public void nextLevelHandler(ActionEvent e) throws IOException {
+        gamePane.setDisable(false);
+        gameWonPane.setVisible(false);
+        gameWonPane.setDisable(true);
+//        level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
+        menuController.playLevel(currentLevelNumber);
+    }
+    public void restartLevelHandler(ActionEvent e) throws IOException {
+        gamePane.setDisable(false);
+        gameLostPane.setVisible(false);
+        gameLostPane.setDisable(true);
+//        level=new Level(currentLevelNumber,gamePane,cards,labels,ls,sunCount,progressTimer,progressBar,this);
+        menuController.playLevel(currentLevelNumber);
+    }
+
+    public void gameWon(){
+        currentLevelNumber++;
+        for(Timeline anim:level.getAllTimeLines()) {
+            if(anim!=null) {
+                anim.pause();
+            }
+        }
+        gamePane.setDisable(true);
+        gameWonPane.setVisible(true);
+        gameWonPane.setDisable(false);
+        if(currentLevelNumber==6) {
+            nextLevelButton.setDisable(true);
+            nextLevelButton.setVisible(false);
+        }
+    }
+
+    public void gameLost(){
+        for(Timeline anim:level.getAllTimeLines()) {
+            if(anim!=null) {
+                anim.pause();
+            }
+        }
+        gamePane.setDisable(true);
+        gameLostPane.setVisible(true);
+        gameLostPane.setDisable(false);
     }
 }
